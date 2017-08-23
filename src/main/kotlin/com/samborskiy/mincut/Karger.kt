@@ -66,10 +66,12 @@ private fun getCutSlow(graph: Graph): Int {
     return Math.min(getCut(copiedGraph.deepCopy()), getCut(copiedGraph))
 }
 
-private fun contract(w: Int,
-                     uv: Edge,
-                     edges: MutableList<Edge>,
-                     vertexTo: MutableMap<Int, MutableMap<Int, Edge>>) {
+private fun contract(
+        w: Int,
+        uv: Edge,
+        edges: MutableList<Edge>,
+        vertexTo: MutableMap<Int, MutableMap<Int, Edge>>
+) {
     val (u, v) = uv
     val vu = vertexTo[v]!![u]!!
 
@@ -84,8 +86,8 @@ private fun contract(w: Int,
         reverseEdge.to = w
 
         if (vertexTo[reverseEdge.from]!!.contains(reverseEdge.to)) {
-            removeEdge(edge, edges)
-            removeEdge(reverseEdge, edges)
+            edges.removeEdge(edge)
+            edges.removeEdge(reverseEdge)
             vertexTo[edge.from]!![edge.to]!!.weight += edge.weight
             vertexTo[reverseEdge.from]!![reverseEdge.to]!!.weight += reverseEdge.weight
         } else {
@@ -94,14 +96,13 @@ private fun contract(w: Int,
         }
     }
 
-    removeEdge(uv, edges)
-    removeEdge(vu, edges)
+    edges.removeEdge(uv)
+    edges.removeEdge(vu)
 }
 
-private fun removeEdge(edge: Edge, edges: MutableList<Edge>) {
-    val lastEdge = edges.last()
+private fun MutableList<Edge>.removeEdge(edge: Edge) {
+    val lastEdge = last()
     lastEdge.index = edge.index
-    edges[lastEdge.index] = lastEdge
-    edges.removeAt(edges.size - 1)
+    set(lastEdge.index, lastEdge)
+    removeAt(lastIndex)
 }
-

@@ -45,9 +45,11 @@ data class Edge(var from: Int, var to: Int, var weight: Int, var index: Int = -1
     }
 }
 
-data class Graph(val edges: MutableList<Edge>,
-                 val vertexTo: MutableMap<Int, MutableMap<Int, Edge>>,
-                 var nextVertexNumber: Int) {
+data class Graph(
+        val edges: MutableList<Edge>,
+        val vertexTo: MutableMap<Int, MutableMap<Int, Edge>>,
+        var nextVertexNumber: Int
+) {
 
     fun deepCopy(): Graph = buildGraph(edges)
 }
