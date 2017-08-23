@@ -14,6 +14,7 @@ class KargerTest {
         val filename = KargerTest::class.java.classLoader.getResource("simpleGraph").file
         val graph = readGraph(filename)
         assertEquals(8, findMincut(graph))
+        assertEquals(8, findMincutFast(graph))
     }
 
     @Test
@@ -21,6 +22,7 @@ class KargerTest {
         val filename = KargerTest::class.java.classLoader.getResource("wikiGraph").file
         val graph = readGraph(filename)
         assertEquals(3, findMincut(graph))
+        assertEquals(3, findMincutFast(graph))
     }
 
     private fun readGraph(filename: String): Graph {
