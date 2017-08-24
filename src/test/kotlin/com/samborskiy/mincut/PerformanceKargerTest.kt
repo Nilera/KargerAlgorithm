@@ -7,31 +7,49 @@ private val RANDOM = Random()
 
 class PerformanceKargerTest {
 
+    private val FUNCTIONS = ArrayList<(Graph) -> Int>().apply {
+        add({ g: Graph -> findMincut(g) })
+        (10..100 step 10).forEach { i ->
+            add({ g: Graph -> findMincutFast(g, i) })
+        }
+    }
+
     @Test
-    fun performanceTest() {
+    fun uniformPerformanceTest1() {
         val lowerBound = 25
         val upperBound = 75
         val step = 5
         val iteration = 100
 
-        val functions = ArrayList<(Graph) -> Int>().apply {
-            add({ g: Graph -> findMincut(g) })
-            (10..100 step 10).forEach { i ->
-                add({ g: Graph -> findMincutFast(g, i) })
-            }
-        }
-
         val graphs = (lowerBound..upperBound step step)
                 .map { verticesNumber -> generateRandomGraph(verticesNumber, 1500) }
-                .toList()
         val answers = graphs.map { graph -> findMincut(graph) } // let's consider that Karger's algorithm always correct
 
+        performanceTest(FUNCTIONS, graphs, answers, lowerBound, step, iteration)
+    }
+
+    @Test
+    fun uniformPerformanceTest2() {
+        val lowerBound = 5
+        val upperBound = 20
+        val step = 5
+        val iteration = 100
+
+        val answers = (lowerBound..upperBound step step)
+                .map { verticesNumber -> RANDOM.nextInt(verticesNumber - 2) + 1 }
+        val graphs = (lowerBound..upperBound step step)
+                .mapIndexed { index, verticesNumber -> generateTwoComponentGraph(verticesNumber, answers[index]) }
+
+        performanceTest(FUNCTIONS, graphs, answers, lowerBound, step, iteration)
+    }
+
+    private fun performanceTest(functions: List<(Graph) -> Int>, graphs: List<Graph>, answers: List<Int>, lowerBound: Int, step: Int, iteration: Int) {
         functions.forEachIndexed { index, mincut ->
             println("%d mincut function:".format(index))
             graphs.forEachIndexed { i, graph ->
                 val (time, errors) = getAvrStatistics(answers[i], graph, mincut, iteration)
                 println("n = %d: avr time = %d and errors = %d"
-                        .format((i + 1) * step + lowerBound, time, errors))
+                        .format(i * step + lowerBound, time, errors))
             }
             println()
         }
@@ -53,21 +71,5 @@ class PerformanceKargerTest {
         val time = System.currentTimeMillis()
         val answer = mincut(graph)
         return Pair(System.currentTimeMillis() - time, answer)
-    }
-
-
-    private fun generateRandomGraph(verticesNumber: Int, edgesNumber: Int, maxWeight: Int = 10): Graph {
-        val edges = ArrayList<Edge>(2 * edgesNumber)
-
-        var from = RANDOM.nextInt(verticesNumber)
-        for (i in 0 until edgesNumber) {
-            val to = RANDOM.nextInt(verticesNumber)
-            val weight = RANDOM.nextInt(maxWeight)
-            edges += Edge(from, to, weight)
-            edges += Edge(to, from, weight)
-            from = to
-        }
-
-        return buildGraph(edges)
     }
 }
