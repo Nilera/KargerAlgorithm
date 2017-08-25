@@ -8,9 +8,9 @@ private val RANDOM = Random()
 class PerformanceKargerTest {
 
     private val FUNCTIONS = ArrayList<(Graph) -> Int>().apply {
-        add({ g: Graph -> findMincut(g) })
+        add({ g: Graph -> karger(g) })
         (10..100 step 10).forEach { i ->
-            add({ g: Graph -> findMincutFast(g, i) })
+            add({ g: Graph -> kargerStein(g, i) })
         }
     }
 
@@ -23,7 +23,7 @@ class PerformanceKargerTest {
 
         val graphs = (lowerBound..upperBound step step)
                 .map { verticesNumber -> generateRandomGraph(verticesNumber, 1500) }
-        val answers = graphs.map { graph -> findMincut(graph) } // let's consider that Karger's algorithm always correct
+        val answers = graphs.map { graph -> karger(graph) } // let's consider that Karger's algorithm always correct
 
         performanceTest(FUNCTIONS, graphs, answers, lowerBound, step, iteration)
     }

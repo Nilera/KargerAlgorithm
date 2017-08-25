@@ -11,7 +11,7 @@ private val RANDOM = Random()
  *
  * @see <a href="http://www.leonidzhukov.net/hse/2012/socialnetworks/papers/mincut.pdf">Karger's algorithm</a>
  */
-fun findMincut(graph: Graph): Int {
+fun karger(graph: Graph): Int {
     var mincut = Int.MAX_VALUE
     val n = graph.vertexTo.size
 
@@ -31,7 +31,7 @@ fun findMincut(graph: Graph): Int {
  *
  * @see <a href="http://people.csail.mit.edu/karger/Papers/contract.pdf">Karger-Stein algorithm</a>
  */
-fun findMincutFast(graph: Graph, c: Int = 10): Int {
+fun kargerStein(graph: Graph, c: Int = 10): Int {
     var mincut = Int.MAX_VALUE
     val n = graph.vertexTo.size
 
@@ -47,23 +47,28 @@ fun findMincutFast(graph: Graph, c: Int = 10): Int {
 }
 
 private fun getCut(graph: Graph): Int {
-    var (edges, vertexTo, nextVertexNumber) = graph.deepCopy()
-    while (vertexTo.size > 2) {
-        val edge = edges[RANDOM.nextInt(edges.size)]
-        contract(nextVertexNumber++, edge, edges, vertexTo)
-    }
-    return edges.first().weight // should remain only one edge (two with reverse one)
+    val contractedGraph = multiContract(graph, 2)
+    return contractedGraph.edges.first().weight // should remain only one edge (two with reverse one)
 }
 
 private fun getCutSlow(graph: Graph): Int {
-    val copiedGraph = graph.deepCopy()
-    var (edges, vertexTo, nextVertexNumber) = copiedGraph
-    val lowerBound = Math.floor(graph.vertexTo.size / Math.sqrt(2.0)).toInt()
-    while (vertexTo.size > lowerBound) {
-        val edge = edges[RANDOM.nextInt(edges.size)]
-        contract(nextVertexNumber++, edge, edges, vertexTo)
+    return if (graph.vertexTo.size <= 6) {
+        getCut(graph)
+    } else {
+        val lowerBound = Math.ceil(1 + graph.vertexTo.size / Math.sqrt(2.0)).toInt()
+        val graph1 = multiContract(graph, lowerBound)
+        val graph2 = multiContract(graph, lowerBound)
+        Math.min(getCutSlow(graph1), getCutSlow(graph2))
     }
-    return Math.min(getCut(copiedGraph.deepCopy()), getCut(copiedGraph))
+}
+
+private fun multiContract(graph: Graph, t: Int): Graph {
+    val copiedGraph = graph.deepCopy()
+    while (copiedGraph.vertexTo.size > t) {
+        val edge = copiedGraph.edges[RANDOM.nextInt(copiedGraph.edges.size)]
+        contract(copiedGraph.nextVertexNumber++, edge, copiedGraph.edges, copiedGraph.vertexTo)
+    }
+    return copiedGraph
 }
 
 private fun contract(
